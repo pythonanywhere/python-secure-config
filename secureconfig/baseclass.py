@@ -2,20 +2,19 @@ from __future__ import absolute_import
 
 from ast import literal_eval
 
-from .zeromem import zeromem
 from .cryptkeeper import CryptKeeper, EnvCryptKeeper, FileCryptKeeper, cryptkeeper_access_methods
 from .exceptions import ReadOnlyConfigError, SecureConfigException
 
 __doc__ = '''SecureConfig base class for simplifying load of encrypted config files (default: serialized dict).
 
     Features:
-  
+
     * Instantiate with either a file path or a string of text (or none for a blank slate).
     * Stores simple "config" dictionary in .cfg
     * ConfigParser-like interface (get, set, add_section, remove_section, write)
     * .write(filehandle) method serializes dictionary, encrypts, and writes to open filehandle
     * Supply readonly=True to protect configuration from .set and .write
-    
+
     SecureConfig base class uses only serialized python dictionaries.
 
     For JSON, use SecureJson.
@@ -24,26 +23,26 @@ __doc__ = '''SecureConfig base class for simplifying load of encrypted config fi
 
 
 class SecureConfig(cryptkeeper_access_methods):
-    '''Builds a SecureConfig object. 
-    
+    '''Builds a SecureConfig object.
+
     Without any arguments, SecureConfig.__init__ is a blank slate into which you can
     load dictionary-based data directly into cfg.
-    
+
     To decrypt data, SecureConfig requires a CryptKeeper object, but the following class
     methods help set this up for you:
 
         SecureConfig.from_key(keystring)
-        SecureConfig.from_file(keyfilename)    
+        SecureConfig.from_file(keyfilename)
         SecureConfig.from_env(key_environment_variable_name)
 
     Otherwise, supply a CryptKeeper object directly:
-    
+
         SecureConfig(ck=CryptKeeper(key=some_key))
 
-    If ck==None, SecureConfig will attempt to read the file as if it were stored 
+    If ck==None, SecureConfig will attempt to read the file as if it were stored
     exclusively in plaintext and throws SecureConfigException if it cannot be parsed.
 
-    `readonly` param ensures that .set() and .write() cannot be used. 
+    `readonly` param ensures that .set() and .write() cannot be used.
 
         :param filepath:   absolute or relative path to real file on disk.
         :param rawtxt:     string containing encrypted configuration string.
@@ -66,15 +65,15 @@ class SecureConfig(cryptkeeper_access_methods):
             rawtxt = self._read(filepath)
 
         if self.ck and rawtxt:
-            self._fill(self._decrypt(rawtxt))        
+            self._fill(self._decrypt(rawtxt))
         elif rawtxt:
             try:
                 self._fill(rawtxt)
             except ValueError:
                 # invalid data structure OR this file was encrypted.
-                # This approach may only work for SecureJson, which so far is the only use 
+                # This approach may only work for SecureJson, which so far is the only use
                 # for this base class. Please rework as needed to better generalize.
-                raise SecureConfigException('bad data or missing encryption key')                  
+                raise SecureConfigException('bad data or missing encryption key')
         else:
             # this is a "blank slate" configuration.
             self.cfg = {}
@@ -96,7 +95,7 @@ class SecureConfig(cryptkeeper_access_methods):
 
     def __repr__(self):
         return '%r' % self.cfg
-       
+
     def get(self, section, param):
         '''provides ConfigParser-like interface retrieve variables from sections.
 
@@ -110,7 +109,7 @@ class SecureConfig(cryptkeeper_access_methods):
         return self.cfg[section][param]
 
     def remove_section(self, section):
-        '''Remove the specified section from the configuration. If the section in fact 
+        '''Remove the specified section from the configuration. If the section in fact
             existed, return True. Otherwise return False.'''
         try:
             self.cfg.pop(section)
@@ -123,7 +122,7 @@ class SecureConfig(cryptkeeper_access_methods):
         if self.cfg.get(section, None):
             raise SecureConfigException('specified section already exists')
         else:
-            self.cfg[section] = {}            
+            self.cfg[section] = {}
 
     def sections(self):
         'Returns a list of available sections in the config.'
@@ -137,7 +136,7 @@ class SecureConfig(cryptkeeper_access_methods):
         '''if .readonly=False, allows set of param in "section" to value.
 
         If your config data is 1-dimensional, TypeError will be thrown.
-        
+
         If "section" does not exist, KeyError will be thrown.
 
         :param section:  top-level "section" of configuration.

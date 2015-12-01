@@ -29,11 +29,8 @@ class sdist(_sdist):
 cmdclass['sdist'] = sdist
 
 if use_cython:
-    ext_modules += [ Extension('secureconfig.zeromem', sources=['secureconfig/zeromem.pyx']), ]
     cmdclass.update({ 'build_ext': build_ext })
     print cmdclass
-else:
-    ext_modules += [ Extension('secureconfig.zeromem', sources=['secureconfig/zeromem.c']), ]
 
 
 setup (
