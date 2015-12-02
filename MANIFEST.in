@@ -1,3 +1,2 @@
 include README.rst
-include secureconfig/zeromem.c
 
